@@ -11,4 +11,5 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation(group= "org.mozilla", name= "rhino", version="1.7.13")
 }
