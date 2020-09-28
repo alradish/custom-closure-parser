@@ -1,2 +1,2 @@
-rootProject.name = "hot-reload-testtask"
+rootProject.name = "custom-clojure-parser"
 
