@@ -1,2 +1,2 @@
-rootProject.name = "custom-clojure-parser"
+rootProject.name = "custom-closure-parser"
 
