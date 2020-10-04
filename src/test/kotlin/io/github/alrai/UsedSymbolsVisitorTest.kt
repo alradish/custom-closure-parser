@@ -13,6 +13,20 @@ class UsedSymbolsVisitorTest {
     private var parser = Parser(environment)
 
     @Test
+    fun useInInit() {
+        val root = parse("""
+            var a = 2;
+            var b = a;
+        """.trimIndent())
+        containsSymbols(
+            usedSymbols(root),
+            mapOf(
+                null to listOf("a")
+            )
+        )
+    }
+
+    @Test
     fun simpleTest() {
         val root = parse(
             """
