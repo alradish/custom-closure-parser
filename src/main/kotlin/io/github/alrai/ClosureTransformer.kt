@@ -14,8 +14,6 @@ class ClosureTransformer {
         val parser = Parser(environment)
         val root = parser.parse(code, null, 0)
 
-//        DebugVisitor().let { root.visit(it) }
-
         val usedSymbols = UsedSymbolsVisitor()
             .runOn(root)
             .usedSymbol
@@ -26,12 +24,14 @@ class ClosureTransformer {
             .runOn(root)
             .calls
 
+        // Add notLocal to param list
         notLocalSymbols.forEach { (func, symbols) ->
             func.params = symbols.map { Name(0, it) } + func.params
             func.parent.removeChild(func)
         }
 
 
+        // Update argument list for every call
         functionCalls.forEach { (func, calls) ->
             calls.forEach { call ->
                 val oldArguments = call.arguments
@@ -40,6 +40,7 @@ class ClosureTransformer {
             }
         }
 
+        // Put functions to top
         notLocalSymbols.forEach { (func, _) ->
             root.addChildToFront(func)
         }
