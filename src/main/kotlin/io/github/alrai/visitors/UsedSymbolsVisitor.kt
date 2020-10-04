@@ -3,18 +3,21 @@ package io.github.alrai.visitors
 import io.github.alrai.ancestorWithType
 import org.mozilla.javascript.ast.*
 
-class UsedSymbolsVisitor() : NodeVisitor {
-    val usedSymbols: MutableMap<Scope, MutableList<Name>> = mutableMapOf()
+typealias SymbolTable = Map<Scope, List<Name>>
+
+class UsedSymbolsVisitor : NodeVisitor {
+    val usedSymbol: SymbolTable
+        get() = _usedSymbol
+
+    private val _usedSymbol: MutableMap<Scope, MutableList<Name>> = mutableMapOf()
     override fun visit(node: AstNode): Boolean {
         if (node is Name) {
             if(shouldSkip(node)) return true
 
             val key = node.ancestorWithType<Scope>()!!
-            if (usedSymbols[key] == null) {
-                usedSymbols[key] = mutableListOf(node)
-            } else {
-                usedSymbols[key]!!.add(node)
-            }
+            _usedSymbol.getOrPut(key) {
+                mutableListOf()
+            }.add(node)
         }
         return true
     }

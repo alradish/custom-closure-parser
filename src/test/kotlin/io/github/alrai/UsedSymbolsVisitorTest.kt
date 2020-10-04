@@ -135,7 +135,7 @@ class UsedSymbolsVisitorTest {
     private fun usedSymbols(root: AstRoot): SymbolTable {
         val visitor = UsedSymbolsVisitor()
         root.visit(visitor)
-        return visitor.usedSymbols
+        return visitor.usedSymbol
     }
 
     private fun containsSymbols(table: SymbolTable, symbols: Map<String?, List<String>>) {
