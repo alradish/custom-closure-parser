@@ -4,7 +4,7 @@ import io.github.alrai.ancestorWithType
 import org.mozilla.javascript.ast.*
 
 class UsedSymbolsVisitor() : NodeVisitor {
-    val usedSymbols: MutableMap<AstNode, MutableList<Name>> = mutableMapOf()
+    val usedSymbols: MutableMap<Scope, MutableList<Name>> = mutableMapOf()
     override fun visit(node: AstNode): Boolean {
         if (node is Name) {
 
@@ -13,6 +13,9 @@ class UsedSymbolsVisitor() : NodeVisitor {
             if (parent is FunctionNode) {
                 if (node == parent.functionName) return false
                 if (parent.params.contains(node)) return false
+            }
+            if(parent is VariableInitializer) {
+                if (node == parent.target) return true
             }
 
             val key = node.ancestorWithType<Scope>()!!

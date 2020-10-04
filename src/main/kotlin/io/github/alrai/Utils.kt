@@ -9,7 +9,7 @@ fun AstNode.haveAncestor(node: AstNode): Boolean {
     } ?: false
 }
 
-inline fun <reified T : AstNode> AstNode.ancestorWithType(): AstNode? {
+inline fun <reified T : AstNode> AstNode.ancestorWithType(): T? {
     var p = parent
     while (p != null) {
         if (p is T) return p
