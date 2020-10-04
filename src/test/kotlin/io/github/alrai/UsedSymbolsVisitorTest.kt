@@ -24,7 +24,7 @@ class UsedSymbolsVisitorTest {
         )
         containSymbols(
             usedSymbols(root),
-            mapOf(null to listOf("a"))
+            mapOf()
         )
     }
 
