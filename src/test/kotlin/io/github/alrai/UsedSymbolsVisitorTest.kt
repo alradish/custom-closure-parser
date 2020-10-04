@@ -4,10 +4,7 @@ import io.github.alrai.visitors.UsedSymbolsVisitor
 import org.junit.jupiter.api.*
 import org.mozilla.javascript.CompilerEnvirons
 import org.mozilla.javascript.Parser
-import org.mozilla.javascript.ast.AstRoot
-import org.mozilla.javascript.ast.FunctionNode
-import org.mozilla.javascript.ast.Name
-import org.mozilla.javascript.ast.Scope
+import org.mozilla.javascript.ast.*
 
 private typealias SymbolTable = Map<Scope, List<Name>>
 
@@ -22,9 +19,70 @@ class UsedSymbolsVisitorTest {
             var a = 0;
         """.trimIndent()
         )
-        containSymbols(
+        containsSymbols(
             usedSymbols(root),
             mapOf()
+        )
+    }
+
+    @Test
+    fun single() {
+        val root = parse("var a = b + 1;")
+        containsSymbols(
+            usedSymbols(root),
+            mapOf(
+                null to listOf("b")
+            )
+        )
+    }
+
+    @Test
+    fun inParams() {
+        val root = parse(
+            """
+                var a = 2
+                function foo(x) {
+                    return a
+                }
+                var b = foo(a)
+            """.trimIndent()
+        )
+        containsSymbols(
+            usedSymbols(root),
+            mapOf(
+                null to listOf("a", "foo"),
+                "foo" to listOf("a")
+            )
+        )
+    }
+
+    @Test
+    fun nested() {
+        val root = parse(
+            """
+                var a = 2;
+                var b = a + 43;
+                function foo() {
+                    var fooa = 0;
+                    function bar(x) {
+                        var bara = a
+                        function foobar() {
+                            return x + 1 
+                        }
+                        var barb = fooa - 2
+                    }
+                    var foob = 2 - fooa;
+                }
+            """.trimIndent()
+        )
+        containsSymbols(
+            usedSymbols(root),
+            mapOf(
+                null to listOf("a"),
+                "foo" to listOf("fooa"),
+                "bar" to listOf("a", "fooa"),
+                "foobar" to listOf("x")
+            )
         )
     }
 
@@ -44,7 +102,7 @@ class UsedSymbolsVisitorTest {
 
         """.trimIndent()
         )
-        containSymbols(
+        containsSymbols(
             usedSymbols(root),
             mapOf(
                 null to listOf("x"),
@@ -66,18 +124,17 @@ class UsedSymbolsVisitorTest {
         return visitor.usedSymbols
     }
 
-
-    // FIXME order independent
-    private fun containSymbols(table: SymbolTable, symbols: Map<String?, List<String>>) {
+    private fun containsSymbols(table: SymbolTable, symbols: Map<String?, List<String>>) {
         Assertions.assertEquals(symbols.size, table.size)
-        (symbols.toList() zip table.toList()).forEach { (s, t) ->
-            if (s.first == null)
-                assert(t.first is AstRoot)
-            else {
-                assert(t.first is FunctionNode)
-                assert((t.first as FunctionNode).functionName.identifier == s.first)
-            }
-            assert(t.second.map { it.identifier }.containsAll(s.second))
+        for ((scope, names) in table) {
+            val list = when (scope) {
+                is AstRoot -> symbols[null]
+                is FunctionNode -> symbols[scope.functionName.identifier]
+                is GeneratorExpression, is ArrayComprehension, is Loop, is LetNode -> TODO()
+                else -> unreachable()
+            } ?: error("Can't find symbols for ${scope.toSource()}")
+            Assertions.assertEquals(list.size, names.size)
+            assert(list.containsAll(names.map { it.identifier }))
         }
     }
 
