@@ -23,7 +23,5 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build
     - name: Run tests
-      uses: OrangeLabs-moe/gradle-actions@v5.0-openjdk-8
-      with: 
-        args: test
+      run: ./gradlew test
       
