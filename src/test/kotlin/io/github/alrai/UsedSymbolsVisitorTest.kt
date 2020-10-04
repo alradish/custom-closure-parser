@@ -8,16 +8,15 @@ import org.mozilla.javascript.ast.*
 
 private typealias SymbolTable = Map<Scope, List<Name>>
 
-class UsedSymbolsVisitorTest {
-    private var environment = CompilerEnvirons()
-    private var parser = Parser(environment)
-
+class UsedSymbolsVisitorTest : AbstractParserTest() {
     @Test
     fun useInInit() {
-        val root = parse("""
+        val root = parse(
+            """
             var a = 2;
             var b = a;
-        """.trimIndent())
+            """.trimIndent()
+        )
         containsSymbols(
             usedSymbols(root),
             mapOf(
@@ -31,7 +30,7 @@ class UsedSymbolsVisitorTest {
         val root = parse(
             """
             var a = 0;
-        """.trimIndent()
+            """.trimIndent()
         )
         containsSymbols(
             usedSymbols(root),
@@ -54,11 +53,11 @@ class UsedSymbolsVisitorTest {
     fun inParams() {
         val root = parse(
             """
-                var a = 2
-                function foo(x) {
-                    return a
-                }
-                var b = foo(a)
+            var a = 2
+            function foo(x) {
+                return a
+            }
+            var b = foo(a)
             """.trimIndent()
         )
         containsSymbols(
@@ -74,19 +73,19 @@ class UsedSymbolsVisitorTest {
     fun nested() {
         val root = parse(
             """
-                var a = 2;
-                var b = a + 43;
-                function foo() {
-                    var fooa = 0;
-                    function bar(x) {
-                        var bara = a
-                        function foobar() {
-                            return x + 1 
-                        }
-                        var barb = fooa - 2
+            var a = 2;
+            var b = a + 43;
+            function foo() {
+                var fooa = 0;
+                function bar(x) {
+                    var bara = a
+                    function foobar() {
+                        return x + 1 
                     }
-                    var foob = 2 - fooa;
+                    var barb = fooa - 2
                 }
+                var foob = 2 - fooa;
+            }
             """.trimIndent()
         )
         containsSymbols(
@@ -110,10 +109,9 @@ class UsedSymbolsVisitorTest {
               var b = 42;
               function bar(c) {
                 return a + b + c;
-              };
+              }
               return bar(24);
-            };
-
+            }
         """.trimIndent()
         )
         containsSymbols(
@@ -126,11 +124,6 @@ class UsedSymbolsVisitorTest {
             )
         )
     }
-
-
-    private fun parse(code: String): AstRoot =
-        parser.parse(code, null, 0) ?: fail("Parser return null")
-
 
     private fun usedSymbols(root: AstRoot): SymbolTable {
         val visitor = UsedSymbolsVisitor()
@@ -151,12 +144,4 @@ class UsedSymbolsVisitorTest {
             assert(list.containsAll(names.map { it.identifier }))
         }
     }
-
-    @BeforeEach
-    private fun setUp() {
-        environment = CompilerEnvirons()
-        parser = Parser(environment)
-    }
-
-
 }
