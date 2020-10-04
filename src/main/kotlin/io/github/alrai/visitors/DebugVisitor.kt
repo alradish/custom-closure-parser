@@ -1,7 +1,6 @@
 package io.github.alrai.visitors
 
 import org.mozilla.javascript.ast.AstNode
-import org.mozilla.javascript.ast.AstRoot
 import org.mozilla.javascript.ast.NodeVisitor
 
 class DebugVisitor : NodeVisitor {

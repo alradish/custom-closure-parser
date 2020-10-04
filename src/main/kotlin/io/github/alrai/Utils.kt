@@ -1,10 +1,11 @@
 package io.github.alrai
 
-import org.mozilla.javascript.ast.AstNode
-import org.mozilla.javascript.ast.AstRoot
-import org.mozilla.javascript.ast.Name
-import org.mozilla.javascript.ast.Scope
+import org.mozilla.javascript.ast.*
 
+fun <T: NodeVisitor> T.runOn(node: AstNode): T {
+    node.visit(this)
+    return this
+}
 
 fun AstNode.haveAncestor(node: AstNode): Boolean {
     return this.parent?.let {
