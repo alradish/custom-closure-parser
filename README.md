@@ -24,6 +24,7 @@ git clone https://github.com/Leidenn2509/custom-closure-parser.git
 
 #### Linux
 ```
+chmod +x gradlew
 ./gradlew build
 ```
 
