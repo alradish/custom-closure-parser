@@ -5,7 +5,7 @@
 
 ### Prerequisites
 
-- JDK 8
+- [Java SE Development Kit 8](https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html)
 
 ### Installing
 
