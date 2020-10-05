@@ -20,14 +20,4 @@ class CallFinderVisitor(functions: List<FunctionNode>) : NodeVisitor {
         }
         return true
     }
-
-    companion object {
-        fun calls(node: AstNode, functions: List<FunctionNode>): Map<FunctionNode, List<FunctionCall>> {
-            return CallFinderVisitor(functions).let {
-                node.visit(it)
-                it.calls
-            }
-        }
-    }
-
 }

@@ -1,9 +1,10 @@
 plugins {
     kotlin("jvm") version "1.4.10"
+    java
 }
 
 group = "io.github.alrai"
-version = "0.0.1"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -17,6 +18,18 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "io.github.alrai.MainKt"
+    }
+
+    from(sourceSets.main.get().output)
+
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
+    })
+}
 
 tasks.test {
     useJUnitPlatform()

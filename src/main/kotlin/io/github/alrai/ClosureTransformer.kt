@@ -1,18 +1,22 @@
 package io.github.alrai
 
 import io.github.alrai.visitors.CallFinderVisitor
-import io.github.alrai.visitors.SymbolTable
 import io.github.alrai.visitors.UsedSymbolsVisitor
 import org.mozilla.javascript.CompilerEnvirons
 import org.mozilla.javascript.Parser
 import org.mozilla.javascript.ast.FunctionNode
 import org.mozilla.javascript.ast.Name
+import org.mozilla.javascript.ast.Scope
 
 class ClosureTransformer {
     fun transform(code: String): String {
         val environment = CompilerEnvirons()
         val parser = Parser(environment)
-        val root = parser.parse(code, null, 0)
+        val root = try {
+            parser.parse(code, null, 0)
+        } catch (e: org.mozilla.javascript.EvaluatorException) {
+            error("Parser error")
+        }
 
         val usedSymbols = UsedSymbolsVisitor()
             .runOn(root)
@@ -47,7 +51,7 @@ class ClosureTransformer {
         return root.toSource()
     }
 
-    private fun findNotLocal(usedSymbols: SymbolTable): Map<FunctionNode, List<String>> {
+    private fun findNotLocal(usedSymbols: Map<Scope, List<Name>>): Map<FunctionNode, List<String>> {
         return usedSymbols
             .filterKeys { it is FunctionNode }
             .map { (scope, names) ->

@@ -8,7 +8,7 @@ import org.mozilla.javascript.ast.AstRoot
 
 abstract class AbstractParserTest {
     private var environment = CompilerEnvirons()
-    protected var parser = Parser(environment)
+    private var parser = Parser(environment)
 
     protected fun parse(code: String): AstRoot =
         parser.parse(code, null, 0) ?: fail("Parser return null")

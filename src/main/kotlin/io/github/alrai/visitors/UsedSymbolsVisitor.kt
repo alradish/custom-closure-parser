@@ -3,10 +3,8 @@ package io.github.alrai.visitors
 import io.github.alrai.ancestorWithType
 import org.mozilla.javascript.ast.*
 
-typealias SymbolTable = Map<Scope, List<Name>>
-
 class UsedSymbolsVisitor : NodeVisitor {
-    val usedSymbol: SymbolTable
+    val usedSymbol: Map<Scope, List<Name>>
         get() = _usedSymbol
 
     private val _usedSymbol: MutableMap<Scope, MutableList<Name>> = mutableMapOf()
