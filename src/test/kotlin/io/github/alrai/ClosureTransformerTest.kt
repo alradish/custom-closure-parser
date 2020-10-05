@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class ClosureTransformerTest : AbstractParserTest() {
-    private var transformer = ClosureTransformer()
 
     @Test
     fun noClosure1() {
@@ -155,7 +154,7 @@ class ClosureTransformerTest : AbstractParserTest() {
 
     private fun assertEquals(code1: String, code2: String) {
         Assertions.assertEquals(
-            transformer.transform(code1).trim(),
+            transform(code1).trim(),
             parse(code2).toSource().trim()
         )
     }

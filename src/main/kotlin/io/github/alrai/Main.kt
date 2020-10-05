@@ -42,7 +42,7 @@ fun main(args: Array<String>) {
             readFile(inputFileName)
 
         val res =
-            ClosureTransformer().transform(code)
+            transform(code)
 
         writeInFile(outputFileName, res)
     } catch (e: IllegalStateException) {
