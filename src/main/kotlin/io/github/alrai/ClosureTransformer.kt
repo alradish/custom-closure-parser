@@ -12,6 +12,7 @@ class ClosureTransformer {
     fun transform(code: String): String {
         val environment = CompilerEnvirons()
         val parser = Parser(environment)
+
         val root = try {
             parser.parse(code, null, 0)
         } catch (e: org.mozilla.javascript.EvaluatorException) {
@@ -22,16 +23,15 @@ class ClosureTransformer {
             .runOn(root)
             .usedSymbol
 
-        val notLocalSymbols = findNotLocal(usedSymbols)
+        val functionsWithNotLocalSymbol = findNotLocal(usedSymbols)
 
-        val functionCalls = CallFinderVisitor(notLocalSymbols.keys.toList())
+        val functionCalls = CallFinderVisitor(functionsWithNotLocalSymbol.keys.toList())
             .runOn(root)
             .calls
 
         // Add notLocal to param list
-        notLocalSymbols.forEach { (func, symbols) ->
+        functionsWithNotLocalSymbol.forEach { (func, symbols) ->
             func.params = symbols.map { Name(0, it) } + func.params
-            func.parent.removeChild(func)
         }
 
 
@@ -39,13 +39,14 @@ class ClosureTransformer {
         functionCalls.forEach { (func, calls) ->
             calls.forEach { call ->
                 val oldArguments = call.arguments
-                val newArguments = notLocalSymbols.getValue(func).map { Name(0, it) }
+                val newArguments = functionsWithNotLocalSymbol.getValue(func).map { Name(0, it) }
                 call.arguments = newArguments + oldArguments
             }
         }
 
         // Put functions to top
-        notLocalSymbols.forEach { (func, _) ->
+        functionsWithNotLocalSymbol.forEach { (func, _) ->
+            func.parent.removeChild(func)
             root.addChildToFront(func)
         }
         return root.toSource()
