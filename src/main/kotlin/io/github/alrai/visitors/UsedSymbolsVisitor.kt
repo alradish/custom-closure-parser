@@ -5,7 +5,9 @@ import org.mozilla.javascript.ast.*
 
 class UsedSymbolsVisitor : NodeVisitor {
     val usedSymbol: Map<Scope, List<Name>>
-        get() = _usedSymbol
+        get() = _usedSymbol.map { (scope, values) ->
+            scope to values.distinctBy { it.identifier }
+        }.toMap()
 
     private val _usedSymbol: MutableMap<Scope, MutableList<Name>> = mutableMapOf()
     override fun visit(node: AstNode): Boolean {

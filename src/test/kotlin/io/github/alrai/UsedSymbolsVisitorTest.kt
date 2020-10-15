@@ -50,6 +50,20 @@ class UsedSymbolsVisitorTest : AbstractParserTest() {
     }
 
     @Test
+    fun twoUsages() {
+        val root = parse( """
+            var a = b + b;
+        """.trimIndent())
+        containsSymbols(
+            usedSymbols(root),
+            mapOf(
+                null to listOf("b")
+            )
+        )
+    }
+
+
+    @Test
     fun inParams() {
         val root = parse(
             """

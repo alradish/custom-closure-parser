@@ -47,13 +47,13 @@ class ClosureTransformerTest : AbstractParserTest() {
             """
                 var a = 2;
                 function foo() {
-                    return a + 20;
+                    return a + 20 + a;
                 }
                 var b = foo();
             """.trimIndent(),
             """
                 function foo(a) {
-                    return a + 20;
+                    return a + 20 + a;
                 }
                 var a = 2;
                 var b = foo(a);
