@@ -18,9 +18,50 @@ class UsedSymbolsVisitorTest : AbstractParserTest() {
             """.trimIndent()
         )
         containsSymbols(
-            usedSymbols(root),
+            root,
             mapOf(
                 null to listOf("a")
+            )
+        )
+    }
+
+    @Test
+    fun assignment() {
+        val root = parse(
+            """
+            var a = 2;
+            a = 3;
+        """.trimIndent()
+        )
+        containsSymbols(
+            root,
+            changed = mapOf(
+                null to listOf("a")
+            )
+        )
+    }
+
+    @Test
+    fun usageAndAssignment() {
+        val root = parse(
+            """
+            var a = 2;
+            function foo() {
+                var b = a;
+                b = b + b;
+                return b;
+            }
+            a = 3;
+        """.trimIndent()
+        )
+        containsSymbols(
+            root,
+            mapOf(
+                "foo" to listOf("a", "b")
+            ),
+            mapOf(
+                null to listOf("a"),
+                "foo" to listOf("b")
             )
         )
     }
@@ -33,7 +74,7 @@ class UsedSymbolsVisitorTest : AbstractParserTest() {
             """.trimIndent()
         )
         containsSymbols(
-            usedSymbols(root),
+            root,
             mapOf()
         )
     }
@@ -42,7 +83,7 @@ class UsedSymbolsVisitorTest : AbstractParserTest() {
     fun single() {
         val root = parse("var a = b + 1;")
         containsSymbols(
-            usedSymbols(root),
+            root,
             mapOf(
                 null to listOf("b")
             )
@@ -51,11 +92,13 @@ class UsedSymbolsVisitorTest : AbstractParserTest() {
 
     @Test
     fun twoUsages() {
-        val root = parse( """
+        val root = parse(
+            """
             var a = b + b;
-        """.trimIndent())
+        """.trimIndent()
+        )
         containsSymbols(
-            usedSymbols(root),
+            root,
             mapOf(
                 null to listOf("b")
             )
@@ -75,7 +118,7 @@ class UsedSymbolsVisitorTest : AbstractParserTest() {
             """.trimIndent()
         )
         containsSymbols(
-            usedSymbols(root),
+            root,
             mapOf(
                 null to listOf("a", "foo"),
                 "foo" to listOf("a")
@@ -103,7 +146,7 @@ class UsedSymbolsVisitorTest : AbstractParserTest() {
             """.trimIndent()
         )
         containsSymbols(
-            usedSymbols(root),
+            root,
             mapOf(
                 null to listOf("a"),
                 "foo" to listOf("fooa"),
@@ -129,7 +172,7 @@ class UsedSymbolsVisitorTest : AbstractParserTest() {
         """.trimIndent()
         )
         containsSymbols(
-            usedSymbols(root),
+            root,
             mapOf(
                 null to listOf("x"),
                 "someFunction" to listOf("y"),
@@ -145,12 +188,25 @@ class UsedSymbolsVisitorTest : AbstractParserTest() {
         return visitor.usedSymbol
     }
 
-    private fun containsSymbols(table: SymbolTable, symbols: Map<String?, List<String>>) {
-        Assertions.assertEquals(symbols.size, table.size)
-        for ((scope, names) in table) {
+    private fun containsSymbols(
+        root: AstRoot,
+        symbols: Map<String?, List<String>> = emptyMap(),
+        changed: Map<String?, List<String>> = emptyMap()
+    ) {
+        val (used, assigned) = UsedSymbolsVisitor()
+            .runOn(root)
+            .run { usedSymbol to changedSymbol }
+        Assertions.assertEquals(symbols.size, used.size)
+        Assertions.assertEquals(changed.size, assigned.size)
+        check(symbols, used)
+        check(changed, assigned)
+    }
+
+    private fun check(expected: Map<String?, List<String>>, actual: Map<Scope, List<Name>>) {
+        for ((scope, names) in actual) {
             val list = when (scope) {
-                is AstRoot -> symbols[null]
-                is FunctionNode -> symbols[scope.functionName.identifier]
+                is AstRoot -> expected[null]
+                is FunctionNode -> expected[scope.functionName.identifier]
                 is GeneratorExpression, is ArrayComprehension, is Loop, is LetNode -> TODO()
                 else -> unreachable()
             } ?: error("Can't find symbols for ${scope.toSource()}")
@@ -158,4 +214,5 @@ class UsedSymbolsVisitorTest : AbstractParserTest() {
             assert(list.containsAll(names.map { it.identifier }))
         }
     }
+
 }

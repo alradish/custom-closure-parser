@@ -8,18 +8,30 @@ class UsedSymbolsVisitor : NodeVisitor {
         get() = _usedSymbol.map { (scope, values) ->
             scope to values.distinctBy { it.identifier }
         }.toMap()
+    val changedSymbol: Map<Scope, List<Name>>
+        get() = _changedSymbol
 
     private val _usedSymbol: MutableMap<Scope, MutableList<Name>> = mutableMapOf()
+    private val _changedSymbol: MutableMap<Scope, MutableList<Name>> = mutableMapOf()
     override fun visit(node: AstNode): Boolean {
         if (node is Name) {
             if(shouldSkip(node)) return true
 
             val key = node.ancestorWithType<Scope>()!!
-            _usedSymbol.getOrPut(key) {
-                mutableListOf()
+            when {
+                node.isAssigned() -> _changedSymbol.getOrPut(key) {
+                    mutableListOf()
+                }
+                else ->  _usedSymbol.getOrPut(key) {
+                    mutableListOf()
+                }
             }.add(node)
         }
         return true
+    }
+
+    private fun Name.isAssigned(): Boolean {
+        return parent is Assignment && (parent as Assignment).left == this
     }
 
     private fun shouldSkip(node: Name): Boolean {
